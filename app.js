@@ -3,6 +3,10 @@
 // load modules
 const express = require('express');
 const morgan = require('morgan');
+const { sequelize } = require('./models');
+
+// get references to our models
+const { User, Course } = models;
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
@@ -13,7 +17,43 @@ const app = express();
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 
-// TODO setup your api routes here
+// TODO setup your api routes here***************************************
+
+console.log('Testing the connection to the database...');
+
+(async () => {
+  try {
+    // Test the connection to the database
+    console.log('Connection to the database successful!');
+
+    // Sync the models
+    console.log('Synchronizing the models with the database...');
+
+    // Add People to the Database
+    console.log('Adding people to the database...');
+  
+    // Update the global variables for the people instances
+
+    // Add Movies to the Database
+    console.log('Adding movies to the database...');
+
+    // Retrieve movies
+
+    // Retrieve people
+
+    process.exit();
+
+  } catch(error) {
+    if (error.name === 'SequelizeValidationError') {
+      const errors = error.errors.map(err => err.message);
+      console.error('Validation errors: ', errors);
+    } else {
+      throw error;
+    }
+  }
+})();
+
+/************************************************************************/
 
 // setup a friendly greeting for the root route
 app.get('/', (req, res) => {
@@ -41,10 +81,36 @@ app.use((err, req, res, next) => {
   });
 });
 
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
 // set our port
-app.set('port', process.env.PORT || 5000);
+var port = normalizePort(process.env.PORT || '5000');
+app.set('port', port);
 
 // start listening on our port
 const server = app.listen(app.get('port'), () => {
   console.log(`Express server is listening on port ${server.address().port}`);
 });
+
+// Listen on provided port and sync models with the database
+sequelize.sync().then(() => {
+  server.listen(port);
+})
