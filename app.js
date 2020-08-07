@@ -4,9 +4,8 @@
 const express = require('express');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
-const routes = require('./routes');
-
-
+const userRoutes = require('./routes/users');
+const courseRoutes = require('./routes/courses');
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
@@ -24,12 +23,6 @@ app.use(morgan('dev'));
     await sequelize.authenticate();
     console.log('Connection to the database successful!');
 
-    // Sync the models
-    await sequelize.sync({force: true});
-    console.log('Synchronizing the models with the database...');
-
-    process.exit();
-
   } catch(error) {
     if (error.name === 'SequelizeValidationError') {
       const errors = error.errors.map(err => err.message);
@@ -40,10 +33,10 @@ app.use(morgan('dev'));
   }
 })();
 
-// TODO setup your api routes here***************************************
-app.use('/api', routes);
+// TODO setup your api routes here
+app.use('/api/users', userRoutes);
+app.use('/api/courses', courseRoutes);
 
-/************************************************************************/
 
 // setup a friendly greeting for the root route
 app.get('/', (req, res) => {
