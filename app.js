@@ -4,9 +4,9 @@
 const express = require('express');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
+const routes = require('./routes');
 
-// get references to our models
-const { User, Course } = models;
+
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
@@ -17,29 +17,16 @@ const app = express();
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 
-// TODO setup your api routes here***************************************
-
-console.log('Testing the connection to the database...');
-
+//Test the connection to the database*************************************
 (async () => {
   try {
     // Test the connection to the database
+    await sequelize.authenticate();
     console.log('Connection to the database successful!');
 
     // Sync the models
+    await sequelize.sync({force: true});
     console.log('Synchronizing the models with the database...');
-
-    // Add People to the Database
-    console.log('Adding people to the database...');
-  
-    // Update the global variables for the people instances
-
-    // Add Movies to the Database
-    console.log('Adding movies to the database...');
-
-    // Retrieve movies
-
-    // Retrieve people
 
     process.exit();
 
@@ -52,6 +39,9 @@ console.log('Testing the connection to the database...');
     }
   }
 })();
+
+// TODO setup your api routes here***************************************
+app.use('/api', routes);
 
 /************************************************************************/
 
