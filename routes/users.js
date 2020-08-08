@@ -21,6 +21,7 @@ router.get('/', asyncHandler(async (req, res) => {
     res.json(users);
 }));
 
+// Route that creates a new user
 router.post('/', asyncHandler(async (req, res) => {
     const user = await User.create(req.body);  
     // console.log(req.body);

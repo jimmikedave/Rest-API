@@ -16,6 +16,9 @@ const app = express();
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 
+/* json middleware - helps with being able to use req.body in route handlers */
+app.use(express.json());
+
 //Test the connection to the database*************************************
 (async () => {
   try {
