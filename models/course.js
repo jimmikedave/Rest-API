@@ -9,9 +9,9 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true,
     },
-    userId: {
-        type: Sequelize.INTEGER
-    },
+    // userId: {
+    //     type: Sequelize.INTEGER
+    // },
     title: Sequelize.STRING,
     description: Sequelize.TEXT,
     estimatedTime: {
@@ -26,7 +26,9 @@ module.exports = (sequelize) => {
 
   Course.associate = (models) => {
     Course.belongsTo(models.User, {
+        as: 'user', //alias
         foreignKey: {
+            fieldName: 'userId',
             allowNull: false,
         },
     });
