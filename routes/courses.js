@@ -33,23 +33,9 @@ router.get('/', asyncHandler(async(req, res) => {
 // Route that creates a new course.
 router.post('/', asyncHandler(async(req, res) => {
   const newCourse = req.body;
+  const course = await Course.create(newCourse);
   const id = course.dataValues.id;
-  const errors = [];
-
-  // if(!newCourse.title) {
-  //   errors.push('Please provide a value for "title".')
-  // }
-
-  // if(!newCourse.description) {
-  //   errors.push('Please provide a value for "description".');
-  // }
-
-  if(errors.length > 0) {
-    res.status(400).json({errors});
-  } else {
-    const course = await Course.create(newCourse);
-    res.location('/api/courses/' + id);
-  }
+  res.status(201).location('/api/courses/' + id).end();
 }));
 
 // GET route that returns the course for the provided ID 
