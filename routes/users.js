@@ -18,15 +18,37 @@ function asyncHandler(cb){
 // Route that returns a list of users.
 router.get('/', asyncHandler(async (req, res) => {
     const users = await User.findAll();
-    console.log(users);
     res.json(users);
 }));
 
 // Route that creates a new user
 router.post('/', asyncHandler(async (req, res) => {
-    const user = await User.create(req.body);  
-    // console.log(req.body);
-    res.redirect('/');
+    const newUser = req.body;
+    const errors = [];
+
+    //Validate that we have a value for "name"
+    if(!newUser.firstName) {
+      errors.push('Please provide a value for "firstName".')
+    }
+
+    if(!newUser.lastName) {
+      errors.push('Please provide a value for "lastName".')
+    }
+
+    if(!newUser.emailAddress) {
+      errors.push('Please provide a value for "emailAddress."')
+    }
+
+    if(!newUser.password) {
+      errors.push('Please provide a value for "password".')
+    }
+
+    if(errors.length > 0) {
+      res.status(400).json({errors});
+    } else {
+      const user = await User.create(newUser); 
+      res.status(201).redirect('/');
+    }
 }));
 
 

@@ -18,7 +18,7 @@ function asyncHandler(cb){
 }
 
 // Route that returns a list of courses with each user.
-router.get('/', asyncHandler( async(req, res) => {
+router.get('/', asyncHandler(async(req, res) => {
   const courses = await Course.findAll({
     include: [
       {
@@ -31,10 +31,25 @@ router.get('/', asyncHandler( async(req, res) => {
 }));
 
 // Route that creates a new course.
-router.post('/', asyncHandler( async(req, res) => {
-  const course = await Course.create(req.body)
+router.post('/', asyncHandler(async(req, res) => {
+  const newCourse = req.body;
   const id = course.dataValues.id;
-  res.location('/api/courses/' + id);
+  const errors = [];
+
+  // if(!newCourse.title) {
+  //   errors.push('Please provide a value for "title".')
+  // }
+
+  // if(!newCourse.description) {
+  //   errors.push('Please provide a value for "description".');
+  // }
+
+  if(errors.length > 0) {
+    res.status(400).json({errors});
+  } else {
+    const course = await Course.create(newCourse);
+    res.location('/api/courses/' + id);
+  }
 }));
 
 // GET route that returns the course for the provided ID 
@@ -51,19 +66,28 @@ router.get('/:id', asyncHandler(async(req, res) => {
   res.json(course)
 }));
 
+// PUT route that updates the targetted course
 router.put('/:id', asyncHandler(async(req, res) => {
-  const courses = await Course.findAll;
-  const course = courses.find(course => course.id == req.params.id);
+  const courses = await Course.findAll();
+  let course = courses.find(course => course.id == req.params.id);
 
-  function updateCourse(new) {
-    course.title = new.title;
-    course.description = new.description;
-    course.userId = new.userId;
-  }
-  
-  await course.updateCourse(req.body)
-  
-  res.json(course);
+  await course.update({
+    title: req.body.title,
+    description: req.body.description,
+    userId: req.body.userId
+  });
+
+  res.status(201).end();
+}));
+
+//DELETE route that deletes the targetted course
+router.delete('/:id', asyncHandler(async(req, res) => {
+  const courses = await Course.findAll();
+  let course = courses.find(course => course.id == req.params.id);
+
+  await course.destroy();
+
+  res.status(201).end();
 }));
 
 module.exports = router;
