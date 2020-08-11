@@ -9,9 +9,6 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true,
     },
-    // userId: {
-    //     type: Sequelize.INTEGER
-    // },
     title: Sequelize.STRING,
     description: Sequelize.TEXT,
     estimatedTime: {
@@ -22,7 +19,10 @@ module.exports = (sequelize) => {
         type: Sequelize.STRING,
         allowNull: true
     }
-  }, { sequelize });
+  }, { 
+    timestamps: false,
+    sequelize 
+  });
 
   Course.associate = (models) => {
     Course.belongsTo(models.User, {
