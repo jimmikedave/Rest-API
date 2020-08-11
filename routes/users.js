@@ -18,13 +18,13 @@ function asyncHandler(cb){
 }
 
 // Authentication Function
-const authenticateUser = (req, res, next) => {
+const authenticateUser = async (req, res, next) => {
   let message = null;
   const credentials = auth(req);
 
   if(credentials) {
-    const allUsers = User.findAll();
-    const user = allUsers.find(u => u.emailAddress === credentials.emailAddress);
+    const allUsers = await User.findAll();
+    const user = allUsers.find(u => u.emailAddress === credentials.name);
 
     if(user) {
       const authenticated = bcryptjs
@@ -51,17 +51,15 @@ const authenticateUser = (req, res, next) => {
   } else {
       // Or if user authentication succeeded...
       // Call the next() method.
-
       next();
   }
 };
 
 // Route that returns the authenticated user.
 router.get('/', authenticateUser, asyncHandler(async (req, res) => {
-    const user = req.currentUser;
+    const authUser = req.currentUser;
 
-
-    res.json(user);
+    res.json(authUser);
 }));
 
 // Route that creates a new user

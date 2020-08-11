@@ -4,6 +4,8 @@ const express = require('express');
 const Course = require('../models').Course;
 const User = require('../models').User;
 const router = express.Router();
+const bcryptjs = require('bcryptjs');
+const auth = require('basic-auth');
 
 
 /* Handler function to pass errors to the Global Error Handler */
@@ -17,8 +19,47 @@ function asyncHandler(cb){
   };
 }
 
+// Authentication Function
+const authenticateUser = async (req, res, next) => {
+  let message = null;
+  const credentials = auth(req);
+
+  if(credentials) {
+    const allUsers = await User.findAll();
+    const user = allUsers.find(u => u.emailAddress === credentials.name);
+
+    if(user) {
+      const authenticated = bcryptjs
+        .compareSync(credentials.pass, user.password)
+
+      if(authenticated) {
+        req.currentUser = user;
+            } else {
+              message = `Authentication failure for email: ${user.emailAddress}`;
+            }
+        } else {
+          message = `User not found for email: ${credentials.emailAddress}`;
+        }
+    } else {
+      message = 'Auth header not found';
+  }
+
+  // If user authentication failed...
+  if(message) {
+    console.warn(message);
+
+    // Return a response with a 401 Unauthorized HTTP status code.
+    res.status(401).json({message:'Access Denied'})
+  } else {
+      // Or if user authentication succeeded...
+      // Call the next() method.
+
+      next();
+  }
+};
+
 // Route that returns a list of courses with each user.
-router.get('/', asyncHandler(async(req, res) => {
+router.get('/', authenticateUser, asyncHandler(async(req, res) => {
   const courses = await Course.findAll({
     include: [
       {
@@ -31,7 +72,7 @@ router.get('/', asyncHandler(async(req, res) => {
 }));
 
 // Route that creates a new course.
-router.post('/', asyncHandler(async(req, res) => {
+router.post('/', authenticateUser, asyncHandler(async(req, res) => {
   const newCourse = req.body;
   const errors = [];
 
@@ -55,8 +96,6 @@ router.post('/', asyncHandler(async(req, res) => {
   
     res.status(201).location('/api/courses/' + id).end();
   }
-
-
 }));
 
 // GET route that returns the course for the provided ID 
@@ -74,7 +113,7 @@ router.get('/:id', asyncHandler(async(req, res) => {
 }));
 
 // PUT route that updates the targetted course
-router.put('/:id', asyncHandler(async(req, res) => {
+router.put('/:id', authenticateUser, asyncHandler(async(req, res) => {
   const courses = await Course.findAll();
   let course = courses.find(course => course.id == req.params.id);
 
@@ -88,7 +127,7 @@ router.put('/:id', asyncHandler(async(req, res) => {
 }));
 
 //DELETE route that deletes the targetted course
-router.delete('/:id', asyncHandler(async(req, res) => {
+router.delete('/:id', authenticateUser, asyncHandler(async(req, res) => {
   const courses = await Course.findAll();
   let course = courses.find(course => course.id == req.params.id);
 
