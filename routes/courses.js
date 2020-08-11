@@ -59,7 +59,7 @@ const authenticateUser = async (req, res, next) => {
 };
 
 // Route that returns a list of courses with each user.
-router.get('/', authenticateUser, asyncHandler(async(req, res) => {
+router.get('/', asyncHandler(async(req, res) => {
   const courses = await Course.findAll({
     include: [
       {
@@ -114,26 +114,58 @@ router.get('/:id', asyncHandler(async(req, res) => {
 
 // PUT route that updates the targetted course
 router.put('/:id', authenticateUser, asyncHandler(async(req, res) => {
+  const authUser = req.currentUser;
   const courses = await Course.findAll();
   let course = courses.find(course => course.id == req.params.id);
+  let errors = [];
 
-  await course.update({
-    title: req.body.title,
-    description: req.body.description,
-    userId: req.body.userId
-  });
+  if(authUser.id === course.userId) {
 
-  res.status(201).end();
+    if(!req.body.title) {
+      errors.push('Please provide a value for "title".');
+    }
+  
+    if(!req.body.description) {
+      errors.push('Please provide a value for "description".');
+    }
+  
+    if(errors.length > 0) {
+      res.status(400).json({errors});
+  
+    } else {
+      await course.update({
+        title: req.body.title,
+        description: req.body.description,
+      });
+    
+      res.status(201).end();
+    }
+  } else {
+    errors.push('You are not authorized to edit this course.')
+    res.status(403).json({errors}).end();
+  }
+
 }));
 
 //DELETE route that deletes the targetted course
 router.delete('/:id', authenticateUser, asyncHandler(async(req, res) => {
+  const authUser = req.currentUser;
   const courses = await Course.findAll();
   let course = courses.find(course => course.id == req.params.id);
+  let errors = [];
 
-  await course.destroy();
 
-  res.status(201).end();
+  if(authUser.id === course.userId) {
+    await course.destroy();
+
+    res.status(201).end();
+  } else {
+    errors.push('You are not authorized to delete this course.')
+    res.status(403).json({errors}).end();
+  }
+
+ 
+  
 }));
 
 module.exports = router;
