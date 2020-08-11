@@ -114,7 +114,7 @@ router.post('/', asyncHandler(async (req, res) => {
       res.status(400).json({errors});
     } else {
       const user = await User.create(newUser); 
-      res.status(201).redirect('/').end();
+      res.status(201).location('/').end();
     }
     
 }));
