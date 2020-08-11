@@ -154,7 +154,7 @@ router.put('/:id', authenticateUser, asyncHandler(async(req, res) => {
         description: req.body.description,
       });
     
-      res.status(201).end();
+      res.status(204).end();
     }
   } else {
     errors.push('You are not authorized to edit this course.')
@@ -172,7 +172,7 @@ router.delete('/:id', authenticateUser, asyncHandler(async(req, res) => {
   if(authUser.id === course.userId) {
     await course.destroy();
 
-    res.status(201).end();
+    res.status(204).end();
   } else {
     errors.push('You are not authorized to delete this course.')
     res.status(403).json({errors}).end();
