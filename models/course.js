@@ -37,25 +37,3 @@ module.exports = (sequelize) => {
   return Course;
 };
 
- // const newCourse = req.body;
-  // const id = course.dataValues.id;
-  // const errors = [];
-
-  // if(!newCourse.title) {
-  //   errors.push('Please provide a value for "title".')
-  // }
-
-  // if(!newCourse.description) {
-  //   errors.push('Please provide a value for "description".');
-  // }
-
-  // if(!newCourse.userId) {
-  //   errors.push('Please provide a value for "userId".')
-  // }
-
-  // if(errors.length > 0) {
-  //   res.status(400).json({errors});
-  // } else {
-  //   const course = await Course.create(newCourse);
-  //   res.location('/api/courses/' + id);
-  // }
