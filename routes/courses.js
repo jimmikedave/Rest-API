@@ -6,15 +6,15 @@ const User = require('../models').User;
 const router = express.Router();
 
 
-/* Handler function to wrap each route. */
+/* Handler function to pass errors to the Global Error Handler */
 function asyncHandler(cb){
-  return async(req, res, next) => {
+  return async (req, res, next)=>{
     try {
-      await cb(req, res, next)
-    } catch(error){
-      res.status(500).send(error);
+      await cb(req,res, next);
+    } catch(err){
+      res.status(400).next(err);
     }
-  }
+  };
 }
 
 // Route that returns a list of courses with each user.
@@ -33,9 +33,30 @@ router.get('/', asyncHandler(async(req, res) => {
 // Route that creates a new course.
 router.post('/', asyncHandler(async(req, res) => {
   const newCourse = req.body;
-  const course = await Course.create(newCourse);
-  const id = course.dataValues.id;
-  res.status(201).location('/api/courses/' + id).end();
+  const errors = [];
+
+  if(!newCourse.title) {
+    errors.push('Please provide a value for "title".');
+  }
+
+  if(!newCourse.description) {
+    errors.push('Please provide a value for "description".');
+  }
+
+  if(!newCourse.userId) {
+    errors.push('Please provide a value for "userId".');
+  }
+
+  if(errors.length > 0) {
+    res.status(400).json({errors});
+  } else {
+    const course = await Course.create(newCourse);
+    const id = course.dataValues.id;
+  
+    res.status(201).location('/api/courses/' + id).end();
+  }
+
+
 }));
 
 // GET route that returns the course for the provided ID 
