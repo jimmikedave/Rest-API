@@ -13,7 +13,10 @@ module.exports = (sequelize) => {
     lastName: Sequelize.STRING,
     emailAddress: Sequelize.STRING,
     password: Sequelize.STRING
-  }, { sequelize });
+  }, { 
+    timestamps: false,
+    sequelize 
+  });
 
   User.associate = (models) => {
     User.hasMany(models.Course, {
