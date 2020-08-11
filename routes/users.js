@@ -5,6 +5,7 @@ const User = require('../models').User;
 const router = express.Router();
 const bcryptjs = require('bcryptjs');
 const auth = require('basic-auth');
+const Isemail = require('isemail');
 
 /* Handler function to pass errors to the Global Error Handler */
 function asyncHandler(cb){
@@ -58,15 +59,18 @@ const authenticateUser = async (req, res, next) => {
 // Route that returns the authenticated user.
 router.get('/', authenticateUser, asyncHandler(async (req, res) => {
     const authUser = req.currentUser;
+    delete authUser.dataValues.password;
 
-    res.json(authUser);
+    res.json({ authUser });
 }));
 
 // Route that creates a new user
 router.post('/', asyncHandler(async (req, res) => {
     const newUser = req.body;
+    const allUsers = await User.findAll();
+    const existingUser = allUsers.find(u => u.emailAddress === newUser.emailAddress);
     const errors = [];
-
+    
     //Validate that we have a value for "name"
     if(!newUser.firstName) {
       errors.push('Please provide a value for "firstName".')
@@ -77,7 +81,11 @@ router.post('/', asyncHandler(async (req, res) => {
     }
 
     if(!newUser.emailAddress) {
-      errors.push('Please provide a value for "emailAddress."')
+      errors.push('Please provide a value for "emailAddress".')
+    } else if (!Isemail.validate(newUser.emailAddress)) {
+      errors.push('Please provide a valid email.')
+    } else if(existingUser) {
+      errors.push('Sorry, the email address provided is already in use.')
     }
 
     if(!newUser.password) {
@@ -90,8 +98,10 @@ router.post('/', asyncHandler(async (req, res) => {
       res.status(400).json({errors});
     } else {
       const user = await User.create(newUser); 
-      res.status(201).redirect('/');
+      
+      res.status(201).redirect('/').end();
     }
+    
 }));
 
 module.exports = router;
