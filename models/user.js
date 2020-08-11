@@ -14,7 +14,6 @@ module.exports = (sequelize) => {
     emailAddress: Sequelize.STRING,
     password: Sequelize.STRING
   }, { 
-    timestamps: false,
     sequelize 
   });
 

@@ -7,6 +7,9 @@ const router = express.Router();
 const bcryptjs = require('bcryptjs');
 const auth = require('basic-auth');
 
+/*******************
+ MIDDLEWARE FUNCTIONS
+********************/
 
 /* Handler function to pass errors to the Global Error Handler */
 function asyncHandler(cb){
@@ -14,24 +17,29 @@ function asyncHandler(cb){
     try {
       await cb(req,res, next);
     } catch(err){
-      res.status(400).next(err);
+        next(err);
     }
   };
 }
 
-// Authentication Function
+/* Authentication Function */
 const authenticateUser = async (req, res, next) => {
   let message = null;
+
+  // Parse the user's credentials from the Authorization header.
   const credentials = auth(req);
 
+  // If credentials are available.
   if(credentials) {
     const allUsers = await User.findAll();
     const user = allUsers.find(u => u.emailAddress === credentials.name);
 
+    // If the user was successfull retrieved.
     if(user) {
       const authenticated = bcryptjs
         .compareSync(credentials.pass, user.password)
-
+      
+      // If the passwords match.
       if(authenticated) {
         req.currentUser = user;
             } else {
@@ -44,34 +52,39 @@ const authenticateUser = async (req, res, next) => {
       message = 'Auth header not found';
   }
 
-  // If user authentication failed...
+  // If user authentication failed.
   if(message) {
     console.warn(message);
 
     // Return a response with a 401 Unauthorized HTTP status code.
     res.status(401).json({message:'Access Denied'})
   } else {
-      // Or if user authentication succeeded...
-      // Call the next() method.
-
+      
+      // If authentication is successful call next()
       next();
   }
 };
 
-// Route that returns a list of courses with each user.
+/***************
+  COURSE ROUTES
+****************/
+
+/* GET route that returns a list of courses with each user. */
 router.get('/', asyncHandler(async(req, res) => {
   const courses = await Course.findAll({
     include: [
       {
-      model: User,
-      as: 'user',
-    },
-  ],
+        model: User,
+        as: 'user',
+        attributes: ["id", "firstName", "lastName", "emailAddress"]
+      },      
+    ],
+      attributes: ["id", "title", "description", "estimatedTime", "materialsNeeded", "userId"]
   });
     res.json(courses);
 }));
 
-// Route that creates a new course.
+/* POST route that creates a new course. */
 router.post('/', authenticateUser, asyncHandler(async(req, res) => {
   const newCourse = req.body;
   const errors = [];
@@ -98,21 +111,24 @@ router.post('/', authenticateUser, asyncHandler(async(req, res) => {
   }
 }));
 
-// GET route that returns the course for the provided ID 
+/* GET route that returns the course for the provided ID. */ 
 router.get('/:id', asyncHandler(async(req, res) => {
   const courses = await Course.findAll({
     include: [
       {
         model: User,
         as: 'user',
-      },
+        attributes: ["id", "firstName", "lastName", "emailAddress"]
+      },      
     ],
+      attributes: ["id", "title", "description", "estimatedTime", "materialsNeeded", "userId"]
   });
   const course = courses.find(course => course.id == req.params.id);
-  res.json(course)
+
+  res.json({course})
 }));
 
-// PUT route that updates the targetted course
+/* PUT route that updates the targetted course. */
 router.put('/:id', authenticateUser, asyncHandler(async(req, res) => {
   const authUser = req.currentUser;
   const courses = await Course.findAll();
@@ -144,16 +160,14 @@ router.put('/:id', authenticateUser, asyncHandler(async(req, res) => {
     errors.push('You are not authorized to edit this course.')
     res.status(403).json({errors}).end();
   }
-
 }));
 
-//DELETE route that deletes the targetted course
+/* DELETE route that deletes the targetted course. */
 router.delete('/:id', authenticateUser, asyncHandler(async(req, res) => {
   const authUser = req.currentUser;
   const courses = await Course.findAll();
   let course = courses.find(course => course.id == req.params.id);
   let errors = [];
-
 
   if(authUser.id === course.userId) {
     await course.destroy();
@@ -164,8 +178,6 @@ router.delete('/:id', authenticateUser, asyncHandler(async(req, res) => {
     res.status(403).json({errors}).end();
   }
 
- 
-  
 }));
 
 module.exports = router;

@@ -7,30 +7,39 @@ const bcryptjs = require('bcryptjs');
 const auth = require('basic-auth');
 const Isemail = require('isemail');
 
+/*******************
+ MIDDLEWARE FUNCTIONS
+********************/
+
 /* Handler function to pass errors to the Global Error Handler */
 function asyncHandler(cb){
   return async (req, res, next)=>{
     try {
       await cb(req,res, next);
     } catch(err){
-      res.status(400).next(err);
+      next(err);
     }
   };
 }
 
-// Authentication Function
+/* Authentication Function */
 const authenticateUser = async (req, res, next) => {
   let message = null;
+
+  // Parse the user's credentials from the Authorization header.
   const credentials = auth(req);
 
+  // If credentials are available.
   if(credentials) {
     const allUsers = await User.findAll();
     const user = allUsers.find(u => u.emailAddress === credentials.name);
 
+    // If the user was successfull retrieved.
     if(user) {
       const authenticated = bcryptjs
         .compareSync(credentials.pass, user.password)
-
+      
+      // If the passwords match.
       if(authenticated) {
         req.currentUser = user;
             } else {
@@ -43,35 +52,42 @@ const authenticateUser = async (req, res, next) => {
       message = 'Auth header not found';
   }
 
-  // If user authentication failed...
+  // If user authentication failed.
   if(message) {
     console.warn(message);
 
     // Return a response with a 401 Unauthorized HTTP status code.
     res.status(401).json({message:'Access Denied'})
   } else {
-      // Or if user authentication succeeded...
-      // Call the next() method.
+      
+      // If authentication is successful call next()
       next();
   }
 };
 
-// Route that returns the authenticated user.
+/***************
+  COURSE ROUTES
+****************/
+
+/* GET route that returns the authenticated user. */
 router.get('/', authenticateUser, asyncHandler(async (req, res) => {
     const authUser = req.currentUser;
+    
+    // Remove the password, createdAt, and updatedAt values.
     delete authUser.dataValues.password;
+    delete authUser.dataValues.createdAt;
+    delete authUser.dataValues.updatedAt;
 
     res.json({ authUser });
 }));
 
-// Route that creates a new user
+/* Route that creates a new user */
 router.post('/', asyncHandler(async (req, res) => {
     const newUser = req.body;
     const allUsers = await User.findAll();
     const existingUser = allUsers.find(u => u.emailAddress === newUser.emailAddress);
     const errors = [];
     
-    //Validate that we have a value for "name"
     if(!newUser.firstName) {
       errors.push('Please provide a value for "firstName".')
     } 
@@ -98,7 +114,6 @@ router.post('/', asyncHandler(async (req, res) => {
       res.status(400).json({errors});
     } else {
       const user = await User.create(newUser); 
-      
       res.status(201).redirect('/').end();
     }
     
