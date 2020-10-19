@@ -7,6 +7,9 @@
     "start": "nodemon ./app.js",
     "seed": "cross-env DB_ENABLE_LOGGING=true node './seed'"
   },
+  "engines": {
+    "node": "12.18.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -16,6 +19,7 @@
   "dependencies": {
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
     "cross-env": "^5.2.0",
     "express": "^4.16.3",
     "isemail": "^3.2.0",
