@@ -1,16 +1,22 @@
 'use strict';
 
+const cors = require('cors');
 const express = require('express');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
 const userRoutes = require('./routes/users');
 const courseRoutes = require('./routes/courses');
 
+
+
 // Variable to enable global error logging.
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
 
 // Create the Express app.
 const app = express();
+
+// Enable ALL CORS Requests
+app.use(cors());
 
 // Setup morgan which gives us http request logging.
 app.use(morgan('dev'));
